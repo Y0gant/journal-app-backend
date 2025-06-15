@@ -1,9 +1,17 @@
 package com.y0gant.springDemo.entity;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+
+@Document(collection = "journal_entries")
 public class JournalEntry {
+    @Id
     private long id;
     private String title;
     private String content;
+    private LocalDateTime date;
 
     public long getId() {
         return id;
@@ -27,5 +35,13 @@ public class JournalEntry {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public LocalDateTime getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDateTime date) {
+        this.date = date;
     }
 }
