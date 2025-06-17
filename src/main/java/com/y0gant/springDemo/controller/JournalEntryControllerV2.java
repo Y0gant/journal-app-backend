@@ -1,12 +1,15 @@
 package com.y0gant.springDemo.controller;
 
 import com.y0gant.springDemo.entity.JournalEntry;
+import com.y0gant.springDemo.entity.User;
 import com.y0gant.springDemo.service.JournalEntryService;
+import com.y0gant.springDemo.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @RestController
@@ -14,34 +17,39 @@ import java.util.List;
 public class JournalEntryControllerV2 {
 
     private final JournalEntryService journalEntryService;
+    private final UserService userService;
 
-    public JournalEntryControllerV2(JournalEntryService journalEntryService) {
+    public JournalEntryControllerV2(JournalEntryService journalEntryService, UserService userService) {
         this.journalEntryService = journalEntryService;
+        this.userService = userService;
     }
 
 
-    @GetMapping
-    public ResponseEntity<List<JournalEntry>> getAll() {
-        List<JournalEntry> entries = journalEntryService.getAll();
-        return ResponseEntity.ok(entries);
+    @GetMapping("/{id}")
+    public ResponseEntity<List<JournalEntry>> getAll(@PathVariable long id) {
+        Optional<User> userOptional = userService.getById(id);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            return ResponseEntity.ok(user.getJournalEntries());
+        } else return ResponseEntity.notFound().build();
     }
 
     @GetMapping("id/{id}")
-    public ResponseEntity<JournalEntry> getById(@PathVariable Long id) {
+    public ResponseEntity<JournalEntry> getJournalById(@PathVariable long id) {
         return journalEntryService.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry entry) {
-        return journalEntryService.saveEntry(entry).map(ResponseEntity::ok)
+    @PostMapping("/{id}")
+    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry entry, @PathVariable long id) {
+        return journalEntryService.saveEntry(entry, id).map(ResponseEntity::ok)
                 .orElse(ResponseEntity.badRequest().build());
     }
 
-    @DeleteMapping("id/{id}")
-    public ResponseEntity<Boolean> deleteById(@PathVariable long id) {
-        boolean deleted = journalEntryService.deleteById(id);
+    @DeleteMapping("id/{userId}/{id}")
+    public ResponseEntity<Boolean> deleteJournalById(@PathVariable long id, @PathVariable long userId) {
+        boolean deleted = journalEntryService.deleteById(id, userId);
         if (deleted) {
             return ResponseEntity.status(HttpStatus.OK).body(true);
         } else return ResponseEntity.notFound().build();
@@ -54,8 +62,8 @@ public class JournalEntryControllerV2 {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/multiple")
-    public ResponseEntity<List<JournalEntry>> createMultipleEntries(@RequestBody List<JournalEntry> entries) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(journalEntryService.saveMultipleEntries(entries));
+    @PostMapping("/multiple/{id}")
+    public ResponseEntity<List<JournalEntry>> createMultipleEntries(@RequestBody List<JournalEntry> entries, @PathVariable long id) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(journalEntryService.saveMultipleEntries(entries, id));
     }
 }
