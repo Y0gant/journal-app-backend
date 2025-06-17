@@ -4,6 +4,7 @@ import com.y0gant.springDemo.entity.JournalEntry;
 import com.y0gant.springDemo.entity.User;
 import com.y0gant.springDemo.repository.JournalEntryRepo;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -28,22 +29,32 @@ public class JournalEntryService {
         return entry;
     }
 
-    public Optional<JournalEntry> saveEntry(JournalEntry entry, Long id) {
+    @Transactional
+    public Optional<JournalEntry> saveEntry(JournalEntry entry, long id) {
         Optional<User> userOptional = userService.getById(id);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-            JournalEntry entryToBeSaved = repo.save(prepareEntry(entry));
-            user.getJournalEntries().add(entryToBeSaved);
-            userService.saveUser(user);
-            return Optional.of(entryToBeSaved);
+        if (userOptional.isEmpty()) {
+            return Optional.empty();
         }
-        return Optional.empty();
+
+        try {
+            User user = userOptional.get();
+            JournalEntry preparedEntry = prepareEntry(entry);
+            JournalEntry savedEntry = repo.save(preparedEntry);
+
+            user.getJournalEntries().add(savedEntry);
+            userService.saveUser(user);
+
+            return Optional.of(savedEntry);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save journal entry", e);
+        }
     }
 
     public Optional<JournalEntry> getById(long id) {
         return repo.findById(id);
     }
 
+    @Transactional
     public Optional<JournalEntry> updateJournalById(long id, JournalEntry entryToUpdate) {
         return repo.findById(id).map(existing -> {
             if (entryToUpdate.getTitle() != null && !entryToUpdate.getTitle().isEmpty())
@@ -54,6 +65,7 @@ public class JournalEntryService {
         });
     }
 
+    @Transactional
     public boolean deleteById(long id, Long userId) {
         Optional<User> userOptional = userService.getById(userId);
         if (userOptional.isPresent()) {
@@ -66,9 +78,16 @@ public class JournalEntryService {
         return false;
     }
 
+    @Transactional
     public List<JournalEntry> saveMultipleEntries(List<JournalEntry> entries, Long id) {
+        if (entries == null || entries.isEmpty()) {
+            return Collections.emptyList();
+        }
         Optional<User> userOptional = userService.getById(id);
-        if (userOptional.isPresent()) {
+        if (userOptional.isEmpty()) {
+            return Collections.emptyList();
+        }
+        try {
             User user = userOptional.get();
             List<JournalEntry> entryToBeSaved = repo.saveAll(entries.stream()
                     .map(this::prepareEntry)
@@ -76,8 +95,9 @@ public class JournalEntryService {
             user.getJournalEntries().addAll(entryToBeSaved);
             userService.saveUser(user);
             return entryToBeSaved;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        return Collections.emptyList();
     }
 
 }
