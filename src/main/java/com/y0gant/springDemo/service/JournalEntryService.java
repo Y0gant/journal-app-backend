@@ -30,8 +30,8 @@ public class JournalEntryService {
     }
 
     @Transactional
-    public Optional<JournalEntry> saveEntry(JournalEntry entry, long id) {
-        Optional<User> userOptional = userService.getById(id);
+    public Optional<JournalEntry> saveEntry(JournalEntry entry, String userName) {
+        Optional<User> userOptional = userService.getByUsername(userName);
         if (userOptional.isEmpty()) {
             return Optional.empty();
         }
@@ -55,8 +55,18 @@ public class JournalEntryService {
     }
 
     @Transactional
-    public Optional<JournalEntry> updateJournalById(long id, JournalEntry entryToUpdate) {
-        return repo.findById(id).map(existing -> {
+    public Optional<JournalEntry> updateJournalById(String userName, long id, JournalEntry entryToUpdate) {
+        Optional<User> userOptional = userService.getByUsername(userName);
+        List<JournalEntry> entries = userOptional.get().getJournalEntries();
+        JournalEntry entry = null;
+        for (JournalEntry entry1 : entries) {
+            if (entry1.getId() == id) {
+                entry = entry1;
+                break;
+            }
+
+        }
+        return Optional.ofNullable(entry).map(existing -> {
             if (entryToUpdate.getTitle() != null && !entryToUpdate.getTitle().isEmpty())
                 existing.setTitle(entryToUpdate.getTitle());
             if (entryToUpdate.getContent() != null) existing.setContent(entryToUpdate.getContent());
@@ -66,8 +76,8 @@ public class JournalEntryService {
     }
 
     @Transactional
-    public boolean deleteById(long id, Long userId) {
-        Optional<User> userOptional = userService.getById(userId);
+    public boolean deleteById(long id, String userName) {
+        Optional<User> userOptional = userService.getByUsername(userName);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             user.getJournalEntries().removeIf(x -> x.getId() == id);
@@ -79,11 +89,11 @@ public class JournalEntryService {
     }
 
     @Transactional
-    public List<JournalEntry> saveMultipleEntries(List<JournalEntry> entries, Long id) {
+    public List<JournalEntry> saveMultipleEntries(List<JournalEntry> entries, String userName) {
         if (entries == null || entries.isEmpty()) {
             return Collections.emptyList();
         }
-        Optional<User> userOptional = userService.getById(id);
+        Optional<User> userOptional = userService.getByUsername(userName);
         if (userOptional.isEmpty()) {
             return Collections.emptyList();
         }

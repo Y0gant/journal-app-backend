@@ -3,6 +3,7 @@ package com.y0gant.springDemo.entity;
 import com.mongodb.lang.NonNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.DBRef;
@@ -17,7 +18,7 @@ import java.util.List;
 public class User {
 
     @Id
-    private Long id;
+    private ObjectId id;
     @Indexed(unique = true)
     @NonNull
     private String userName;
@@ -25,5 +26,5 @@ public class User {
     private String password;
     @DBRef
     private List<JournalEntry> journalEntries = new ArrayList<>();
-
+    private List<String> roles;
 }

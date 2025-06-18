@@ -25,32 +25,25 @@ public class UserController {
         return userService.getAll();
     }
 
-    @GetMapping("/id/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable long id) {
-        Optional<User> user = userService.getById(id);
+    @GetMapping("/userName/{userName}")
+    public ResponseEntity<User> getUserByUserName(@PathVariable String userName) {
+        Optional<User> user = userService.getByUsername(userName);
         if (user.isPresent()) {
             return ResponseEntity.of(user);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        return userService.saveUser(user)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.badRequest().build());
-    }
-
     @PutMapping
     public ResponseEntity<User> updateUser(@RequestBody User user) {
-        return userService.updateUserById(user.getId(), user)
+        return userService.updateUser(user.getUserName(), user)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/id/{id}")
-    public ResponseEntity<Boolean> deleteUser(@PathVariable long id) {
-        boolean deleted = userService.deleteUserById(id);
+    @DeleteMapping("/userName/{userNAme}")
+    public ResponseEntity<Boolean> deleteUser(@PathVariable String userName) {
+        boolean deleted = userService.deleteUserById(userName);
         if (deleted) {
             return ResponseEntity.ok(true);
         }
