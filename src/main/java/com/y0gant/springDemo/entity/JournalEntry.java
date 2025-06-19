@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class JournalEntry {
     @Id
-    private long id;
+    private String id;
     @NonNull
     private String title;
     private String content;

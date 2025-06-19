@@ -50,21 +50,20 @@ public class JournalEntryService {
         }
     }
 
-    public Optional<JournalEntry> getById(long id) {
-        return repo.findById(id);
+    public Optional<JournalEntry> getById(String id) {
+        return repo.findJournalEntriesById(id);
     }
 
     @Transactional
-    public Optional<JournalEntry> updateJournalById(String userName, long id, JournalEntry entryToUpdate) {
+    public Optional<JournalEntry> updateJournalById(String userName, String id, JournalEntry entryToUpdate) {
         Optional<User> userOptional = userService.getByUsername(userName);
         List<JournalEntry> entries = userOptional.get().getJournalEntries();
         JournalEntry entry = null;
         for (JournalEntry entry1 : entries) {
-            if (entry1.getId() == id) {
+            if (entry1.getId().equals(id)) {
                 entry = entry1;
                 break;
             }
-
         }
         return Optional.ofNullable(entry).map(existing -> {
             if (entryToUpdate.getTitle() != null && !entryToUpdate.getTitle().isEmpty())
@@ -76,14 +75,16 @@ public class JournalEntryService {
     }
 
     @Transactional
-    public boolean deleteById(long id, String userName) {
+    public boolean deleteById(String id, String userName) {
         Optional<User> userOptional = userService.getByUsername(userName);
         if (userOptional.isPresent()) {
             User user = userOptional.get();
-            user.getJournalEntries().removeIf(x -> x.getId() == id);
-            userService.saveUser(user);
-            repo.deleteById(id);
-            return true;
+            boolean removed = user.getJournalEntries().removeIf(x -> x.getId().equals(id));
+            if (removed) {
+                userService.saveUser(user);
+                repo.deleteById(id);
+                return true;
+            }
         }
         return false;
     }

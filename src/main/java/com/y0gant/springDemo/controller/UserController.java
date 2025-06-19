@@ -4,9 +4,10 @@ import com.y0gant.springDemo.entity.User;
 import com.y0gant.springDemo.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Optional;
 
 
@@ -20,14 +21,11 @@ public class UserController {
         this.userService = userService1;
     }
 
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAll();
-    }
 
-    @GetMapping("/userName/{userName}")
-    public ResponseEntity<User> getUserByUserName(@PathVariable String userName) {
-        Optional<User> user = userService.getByUsername(userName);
+    @GetMapping("/userInfo")
+    public ResponseEntity<User> getUserByUserName() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Optional<User> user = userService.getByUsername(auth.getName());
         if (user.isPresent()) {
             return ResponseEntity.of(user);
         }
@@ -36,14 +34,17 @@ public class UserController {
 
     @PutMapping
     public ResponseEntity<User> updateUser(@RequestBody User user) {
-        return userService.updateUser(user.getUserName(), user)
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userName = authentication.getName();
+        return userService.updateUser(userName, user)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/userName/{userNAme}")
-    public ResponseEntity<Boolean> deleteUser(@PathVariable String userName) {
-        boolean deleted = userService.deleteUserById(userName);
+    @DeleteMapping("/me")
+    public ResponseEntity<Boolean> deleteUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean deleted = userService.deleteUserByUserName(auth.getName());
         if (deleted) {
             return ResponseEntity.ok(true);
         }

@@ -25,7 +25,7 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<User> saveUser(User user) {
+    public Optional<User> saveNewUser(User user) {
         try {
             user.setPassword(encoder.encode(user.getPassword()));
             user.setRoles(List.of("USER"));
@@ -33,6 +33,10 @@ public class UserService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to save user", e);
         }
+    }
+
+    public void saveUser(User user) {
+        repo.save(user);
     }
 
     public List<User> getAll() {
@@ -45,20 +49,25 @@ public class UserService {
 
     @Transactional
     public Optional<User> updateUser(String userName, User userToUpdate) {
-        return Optional.of(repo.findByUserName(userName)).map(existing -> {
-            if (!userToUpdate.getUserName().isEmpty()) existing.setUserName(userToUpdate.getUserName());
-            if (!userToUpdate.getPassword().isEmpty()) existing.setPassword(userToUpdate.getPassword());
-            return repo.save(existing);
-        });
+        String userNameToUpdate = userToUpdate.getUserName();
+        String passwordToUpdate = userToUpdate.getPassword();
+        User existing = repo.findByUserName(userName);
+        if (userNameToUpdate != null && !userNameToUpdate.isEmpty()) {
+            existing.setUserName(userToUpdate.getUserName());
+        }
+        if (passwordToUpdate != null && !passwordToUpdate.isEmpty()) {
+            existing.setPassword(encoder.encode(userToUpdate.getPassword()));
+        }
+        return Optional.of(repo.save(existing));
     }
 
 
     @Transactional
-    public boolean deleteUserById(String userName) {
+    public boolean deleteUserByUserName(String userName) {
         Optional<User> userOpt = Optional.ofNullable(repo.findByUserName(userName));
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            List<Long> ids = user.getJournalEntries().stream().map(JournalEntry::getId).toList();
+            List<String> ids = user.getJournalEntries().stream().map(JournalEntry::getId).toList();
             journalEntryRepo.deleteAllById(ids);
             repo.deleteByUserName(userName);
             return true;
@@ -66,4 +75,13 @@ public class UserService {
         return false;
     }
 
+    public Optional<User> saveAdmin(User user) {
+        try {
+            user.setPassword(encoder.encode(user.getPassword()));
+            user.setRoles(List.of("ADMIN", "USER"));
+            return Optional.of(repo.save(user));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to save user", e);
+        }
+    }
 }

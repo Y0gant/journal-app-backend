@@ -6,6 +6,8 @@ import com.y0gant.springDemo.service.JournalEntryService;
 import com.y0gant.springDemo.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,7 +15,7 @@ import java.util.Optional;
 
 
 @RestController
-@RequestMapping({"/journal", "/"})
+@RequestMapping("/journal")
 public class JournalEntryControllerV2 {
 
     private final JournalEntryService journalEntryService;
@@ -25,9 +27,10 @@ public class JournalEntryControllerV2 {
     }
 
 
-    @GetMapping("/{userName}")
-    public ResponseEntity<List<JournalEntry>> getAll(@PathVariable String userName) {
-        Optional<User> userOptional = userService.getByUsername(userName);
+    @GetMapping
+    public ResponseEntity<List<JournalEntry>> getAll() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Optional<User> userOptional = userService.getByUsername(auth.getName());
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             return ResponseEntity.ok(user.getJournalEntries());
@@ -35,20 +38,41 @@ public class JournalEntryControllerV2 {
     }
 
     @GetMapping("id/{id}")
-    public ResponseEntity<JournalEntry> getJournalById(@PathVariable long id) {
-        return journalEntryService.getById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public ResponseEntity<JournalEntry> getJournalById(@PathVariable String id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        Optional<User> userOptional = userService.getByUsername(auth.getName());
+        if (userOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        Optional<JournalEntry> journalEntryOptional = journalEntryService.getById(id);
+        if (journalEntryOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        User user = userOptional.get();
+        JournalEntry entry = journalEntryOptional.get();
+
+        if (user.getJournalEntries().contains(entry)) {
+            return ResponseEntity.ok(entry);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
     }
 
-    @PostMapping("/{userName}")
-    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry entry, @PathVariable String userName) {
-        return journalEntryService.saveEntry(entry, userName).map(ResponseEntity::ok)
-                .orElse(ResponseEntity.badRequest().build());
+
+    @PostMapping
+    public ResponseEntity<JournalEntry> createEntry(@RequestBody JournalEntry entry) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return journalEntryService.saveEntry(entry, auth.getName()).map(ResponseEntity::ok).orElse(ResponseEntity.badRequest().build());
     }
 
-    @DeleteMapping("/{userName}/{id}")
-    public ResponseEntity<Boolean> deleteJournalById(@PathVariable long id, @PathVariable String userName) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Boolean> deleteJournalById(@PathVariable String id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Optional<User> userOptional = userService.getByUsername(auth.getName());
+        String userName = userOptional.map(User::getUserName).orElse("");
         boolean deleted = journalEntryService.deleteById(id, userName);
         if (deleted) {
             return ResponseEntity.status(HttpStatus.OK).body(true);
@@ -56,14 +80,19 @@ public class JournalEntryControllerV2 {
     }
 
 
-    @PutMapping("{userName}/{id}")
-    public ResponseEntity<JournalEntry> updateJournalWithId(@PathVariable String userName, @PathVariable long id, @RequestBody JournalEntry entry) {
-        return journalEntryService.updateJournalById(userName, id, entry).map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @PutMapping("/{id}")
+    public ResponseEntity<JournalEntry> updateJournalWithId(@PathVariable String id, @RequestBody JournalEntry entry) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Optional<User> userOptional = userService.getByUsername(auth.getName());
+        String userName = userOptional.map(User::getUserName).orElse("");
+        return journalEntryService.updateJournalById(userName, id, entry).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/multiple/{userName}")
-    public ResponseEntity<List<JournalEntry>> createMultipleEntries(@RequestBody List<JournalEntry> entries, @PathVariable String userName) {
+    @PostMapping("/multiple")
+    public ResponseEntity<List<JournalEntry>> createMultipleEntries(@RequestBody List<JournalEntry> entries) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Optional<User> userOptional = userService.getByUsername(auth.getName());
+        String userName = userOptional.map(User::getUserName).orElse("");
         return ResponseEntity.status(HttpStatus.CREATED).body(journalEntryService.saveMultipleEntries(entries, userName));
     }
 }

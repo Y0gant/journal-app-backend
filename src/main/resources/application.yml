@@ -1,0 +1,8 @@
+spring:
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/journalDb?replicaSet=rs0
+      auto-index-creation: true
+      database: journalDB
+  application:
+    name: springDemo
