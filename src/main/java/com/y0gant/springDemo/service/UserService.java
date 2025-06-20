@@ -18,7 +18,7 @@ public class UserService {
     private final JournalEntryRepo journalEntryRepo;
     private final PasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    UserService(UserRepo userRepo, JournalEntryRepo journalEntryRepo) {
+    public UserService(UserRepo userRepo, JournalEntryRepo journalEntryRepo) {
         this.repo = userRepo;
         this.journalEntryRepo = journalEntryRepo;
 

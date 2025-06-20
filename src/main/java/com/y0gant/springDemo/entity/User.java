@@ -1,6 +1,8 @@
 package com.y0gant.springDemo.entity;
 
 import com.mongodb.lang.NonNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
@@ -14,7 +16,9 @@ import java.util.List;
 
 @Document(collection = "users")
 @Data
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
     @Id
