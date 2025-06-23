@@ -5,3 +5,7 @@ spring:
       auto-index-creation: true
   application:
     name: springDemo
+
+weather:
+  api:
+    key: "bc40e54194e73b4b8d3bb9e8cff71547"
