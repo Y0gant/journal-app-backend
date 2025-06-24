@@ -5,7 +5,22 @@ spring:
       auto-index-creation: true
   application:
     name: springDemo
-
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: yourEmail@gmail.com
+    password: xxxx xxxx xxxx
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connection timeout: 5000
+          timeout: 5000
+          write timeout: 5000
+    protocol: smtp
 weather:
   api:
     key: "bc40e54194e73b4b8d3bb9e8cff71547"

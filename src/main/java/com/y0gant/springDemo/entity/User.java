@@ -1,5 +1,6 @@
 package com.y0gant.springDemo.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mongodb.lang.NonNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,4 +32,7 @@ public class User {
     @DBRef
     private List<JournalEntry> journalEntries = new ArrayList<>();
     private List<String> roles;
+    private String email;
+    @JsonProperty("sentiment_analysis")
+    private boolean sentimentAnalysis;
 }
