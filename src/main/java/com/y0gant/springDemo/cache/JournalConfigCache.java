@@ -5,6 +5,7 @@ import com.y0gant.springDemo.repository.JournalConfigRepo;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -23,6 +24,7 @@ public class JournalConfigCache {
     }
 
     @PostConstruct
+    @Scheduled(cron = "${scheduler.cacheCron}")
     public void init() {
         log.info("Trying to initialize configurations from database");
         configurations = new HashMap<>();

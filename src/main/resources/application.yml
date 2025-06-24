@@ -24,3 +24,6 @@ spring:
 weather:
   api:
     key: "bc40e54194e73b4b8d3bb9e8cff71547"
+scheduler:
+  cacheCron: 0 */5 * * * *
+  emailCron: 0 0 9 ? * SUN
