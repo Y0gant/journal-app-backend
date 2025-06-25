@@ -3,6 +3,9 @@ spring:
     mongodb:
       uri: mongodb://localhost:27017/journalDb?replicaSet=rs0
       auto-index-creation: true
+    redis:
+      host: localhost
+      port: 6379
   application:
     name: springDemo
   mail:
