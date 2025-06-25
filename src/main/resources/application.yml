@@ -21,9 +21,9 @@ spring:
           timeout: 5000
           write timeout: 5000
     protocol: smtp
-weather:
-  api:
-    key: "bc40e54194e73b4b8d3bb9e8cff71547"
+#weather:
+#  api:
+#    key: "yourKey"
 scheduler:
   cacheCron: 0 */5 * * * *
   emailCron: 0 0 9 ? * SUN

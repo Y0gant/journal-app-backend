@@ -8,8 +8,8 @@
 		<version>3.5.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.y0gant</groupId>
-	<artifactId>springDemo</artifactId>
+	<groupId>com.yogant</groupId>
+	<artifactId>journal</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>springDemo</name>
 	<description>Demo project for Spring Boot</description>
