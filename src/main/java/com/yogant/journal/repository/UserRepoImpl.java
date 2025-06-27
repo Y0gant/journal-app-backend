@@ -19,7 +19,7 @@ public class UserRepoImpl {
     public List<User> getUsersWithSA() {
         Query query = new Query();
         query.addCriteria(Criteria.where("email").regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\\.[A-Za-z]{2,}$"));
-        query.addCriteria(Criteria.where("sentiment_analysis").is(true));
+        query.addCriteria(Criteria.where("sentimentAnalysis").is(true));
         List<User> userList = template.find(query, User.class);
         return userList;
     }

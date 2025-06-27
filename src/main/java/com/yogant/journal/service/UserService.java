@@ -103,6 +103,8 @@ public class UserService {
 
             String newUsername = userToUpdate.getUserName();
             String newPassword = userToUpdate.getPassword();
+            boolean newSentiment = userToUpdate.isSentimentAnalysis();
+            String newEmail = userToUpdate.getEmail();
 
             if (newUsername != null && !newUsername.isBlank()) {
                 log.debug("Updating username from [{}] to [{}]", existing.getUserName(), newUsername);
@@ -114,6 +116,17 @@ public class UserService {
                 existing.setPassword(encoder.encode(newPassword));
                 updated = true;
             }
+            if (newSentiment != existing.isSentimentAnalysis()) {
+                log.debug("Updating sentimentAnalysis for user [{}]", existing.getUserName());
+                existing.setSentimentAnalysis(newSentiment);
+                updated = true;
+            }
+            if (newEmail != null && !newEmail.isBlank()) {
+                log.debug("Updating email for user [{}]", existing.getUserName());
+                existing.setEmail(newEmail);
+                updated = true;
+            }
+
             if (!updated) {
                 log.info("No fields were updated for user [{}]. Skipping save.", userName);
                 return Optional.of(existing);
