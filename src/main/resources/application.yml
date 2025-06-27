@@ -11,8 +11,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: yourEmail@gmail.com
-    password: xxxx xxxx xxxx
+    username: yogantfaye@gmail.com
+    password: zejl szxz srlo tfdy
     properties:
       mail:
         smtp:
@@ -24,6 +24,21 @@ spring:
           timeout: 5000
           write timeout: 5000
     protocol: smtp
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: my-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: com.yogant.journal.*
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 #weather:
 #  api:
 #    key: "yourKey"
