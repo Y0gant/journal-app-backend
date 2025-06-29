@@ -8,7 +8,9 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Map;
 
 @Slf4j
@@ -35,21 +37,32 @@ public class WeatherService {
     }
 
     public Weather getWeather(String city) {
-        WeatherResponse cachedData = redisService.getData("weather_of_" + city, WeatherResponse.class);
-        if (cachedData == null) {
-            configs = configCache.getConfigurations();
-            String url = configs.get("WEATHER_URL");
-            String apiKey = configs.get("API_KEY");
-            String finalURL = url.replace("<city>", city).replace("<apiKey>", apiKey);
-            ResponseEntity<WeatherResponse> response = restTemplate.exchange(finalURL, HttpMethod.GET, null, WeatherResponse.class);
-            WeatherResponse weatherResponse = response.getBody();
-            if (weatherResponse != null) {
-                log.info("Fetched weather data using API call");
-                redisService.setData("weather_of_" + city, weatherResponse, 600L);
-                return weatherResponse.getMain();
-            } else throw new NullPointerException("Unable to fetch user response.");
+        if (!city.matches("^[a-zA-Z\\s-]{2,50}$")) {
+            throw new IllegalArgumentException("Invalid city format");
         }
-        log.info("Fetched weather data from redis cache");
-        return cachedData.getMain();
+        String cacheKey = "weather_of_" + city;
+        WeatherResponse cachedData = redisService.getData(cacheKey, WeatherResponse.class);
+        if (cachedData != null) {
+            log.info("Fetched weather data from redis cache");
+            return cachedData.getMain();
+        }
+        configs = configCache.getConfigurations();
+        String url = configs.get("WEATHER_URL");
+        String apiKey = configs.get("API_KEY");
+        URI uri = UriComponentsBuilder
+                .fromUri(URI.create(""))
+                .queryParam("q", city)
+                .queryParam("appid", apiKey)
+                .queryParam("units", "metric")
+                .build(true)
+                .toUri();
+        ResponseEntity<WeatherResponse> response = restTemplate.exchange(uri, HttpMethod.GET, null, WeatherResponse.class);
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            log.info("Fetched weather data using API call");
+            redisService.setData(cacheKey, response.getBody(), 600L);
+            return response.getBody().getMain();
+        } else {
+            throw new NullPointerException("Failed to fetch weather data");
+        }
     }
 }
