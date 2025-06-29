@@ -47,10 +47,9 @@ public class WeatherService {
             return cachedData.getMain();
         }
         configs = configCache.getConfigurations();
-        String url = configs.get("WEATHER_URL");
         String apiKey = configs.get("API_KEY");
         URI uri = UriComponentsBuilder
-                .fromUri(URI.create(""))
+                .fromUri(URI.create("https://api.openweathermap.org/data/2.5/weather"))
                 .queryParam("q", city)
                 .queryParam("appid", apiKey)
                 .queryParam("units", "metric")
