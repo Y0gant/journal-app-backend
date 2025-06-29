@@ -46,12 +46,9 @@ public class AdminController {
     @PostMapping("create-configs")
     public ResponseEntity<String> createConfig(@RequestBody JournalConfig data) {
         String saved = "failed";
-        try {
-            saved = journalConfigCache.saveNewConfig(data);
-            return ResponseEntity.ok(saved);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(saved);
-        }
+        saved = journalConfigCache.saveNewConfig(data);
+        if (saved.equalsIgnoreCase("success")) return ResponseEntity.ok(saved);
+        else return ResponseEntity.badRequest().body(saved);
     }
 
 }

@@ -1,5 +1,6 @@
 package com.yogant.journal.cache;
 
+import com.mongodb.DuplicateKeyException;
 import com.yogant.journal.entity.JournalConfig;
 import com.yogant.journal.repository.JournalConfigRepo;
 import jakarta.annotation.PostConstruct;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 @Slf4j
@@ -38,14 +40,29 @@ public class JournalConfigCache {
     }
 
     public String saveNewConfig(JournalConfig config) {
-        log.info("Trying to save new configuration");
+        log.info("Trying to save configuration for key: {}", config.getKey());
+
         try {
-            configRepo.save(config);
+            Optional<JournalConfig> existingConfig = configRepo.findByKey(config.getKey());
+
+            if (existingConfig.isPresent()) {
+                JournalConfig configToUpdate = existingConfig.get();
+                configToUpdate.setValue(config.getValue());
+                configRepo.save(configToUpdate);
+                log.info("Updated configuration for key: {}", config.getKey());
+            } else {
+                configRepo.save(config);
+                log.info("Inserted new configuration for key: {}", config.getKey());
+            }
+
+            return "Success";
+        } catch (DuplicateKeyException dke) {
+            log.error("Duplicate key error while saving config with key: {}", config.getKey(), dke);
+            return "Duplicate Key";
         } catch (Exception e) {
-            log.error("Failed to save new configuration");
+            log.error("Failed to save configuration for key: {}", config.getKey(), e);
             return "Failed";
         }
-        log.info("successfully saved new configuration");
-        return "Success";
     }
+
 }
