@@ -18,9 +18,9 @@ import java.util.Map;
 public class WeatherService {
 
     private final RestTemplate restTemplate;
-    private JournalConfigCache configCache;
+    private final JournalConfigCache configCache;
+    private final RedisService redisService;
     private Map<String, String> configs;
-    private RedisService redisService;
 
 
 
