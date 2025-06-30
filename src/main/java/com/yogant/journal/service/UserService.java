@@ -2,6 +2,7 @@ package com.yogant.journal.service;
 
 import com.yogant.journal.entity.JournalEntry;
 import com.yogant.journal.entity.User;
+import com.yogant.journal.model.SaveNewUserDTO;
 import com.yogant.journal.repository.JournalEntryRepo;
 import com.yogant.journal.repository.UserRepo;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,18 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<User> saveNewUser(User user) {
+    public Optional<User> saveNewUser(SaveNewUserDTO userToSave) {
+        User user = new User();
+        String email = userToSave.getEmail();
+        String userName = userToSave.getUserName();
+        String password = userToSave.getPassword();
+        if (userName == null || userName.isBlank() || password == null || password.isBlank()) {
+            log.warn("Either of user: {} or password: {} isn't provided or is blank/empty", userName, password);
+            throw new DataIntegrityViolationException("Illegal data constraints userName and password");
+        }
+        user.setUserName(userName);
+        user.setPassword(password);
+        if (email != null && !email.isBlank()) user.setEmail(email);
         log.info("Initiating user creation for username: {}", user.getUserName());
         try {
             log.debug("Trying to save new user with user name {}", user.getUserName());

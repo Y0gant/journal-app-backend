@@ -2,6 +2,7 @@ package com.yogant.journal.service;
 
 import com.yogant.journal.entity.JournalEntry;
 import com.yogant.journal.entity.User;
+import com.yogant.journal.model.SaveNewUserDTO;
 import com.yogant.journal.repository.JournalEntryRepo;
 import com.yogant.journal.repository.UserRepo;
 import org.junit.jupiter.api.Test;
@@ -36,7 +37,7 @@ class UserServiceTest {
 
     @Test
     void testSaveNewUser_returnsUserWithHashedPassword() {
-        User user = new User();
+        SaveNewUserDTO user = new SaveNewUserDTO();
         user.setUserName("john");
         user.setPassword("1234");
 
