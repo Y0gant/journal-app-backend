@@ -1,18 +1,20 @@
 spring:
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/journalDb?replicaSet=rs0
-      auto-index-creation: true
-    redis:
-      host: localhost
-      port: 6379
   application:
     name: springDemo
+  config:
+    import: classpath:application-secret.yml
+  data:
+    mongodb:
+      uri: ${MONGO_DATABASE_URI}
+      auto-index-creation: true
+    redis:
+      host: ${REDIS_DATABASE_HOST}
+      port: ${REDIS_DATABASE_PORT}
   mail:
     host: smtp.gmail.com
     port: 587
-    username: yogantfaye@gmail.com
-    password: zejl szxz srlo tfdy
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     properties:
       mail:
         smtp:
@@ -25,7 +27,7 @@ spring:
           write timeout: 5000
     protocol: smtp
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER_LOCATION}
     consumer:
       group-id: my-group
       auto-offset-reset: earliest
@@ -48,9 +50,9 @@ spring:
       client:
         registration:
           google:
-            client-id: YOUR_GOOGLE_CLIENT_ID
-            client-secret: YOUR_GOOGLE_CLIENT_SECRET
-            redirect-uri: https://developers.google.com/oauthplayground
+            client-id: ${YOUR_GOOGLE_CLIENT_ID}
+            client-secret: ${YOUR_GOOGLE_CLIENT_SECRET}
+            redirect-uri: ${OAUTH_REDIRECT_URI}
 
 scheduler:
   cacheCron: 0 */5 * * * *
