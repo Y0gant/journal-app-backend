@@ -39,9 +39,19 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
-#weather:
-#  api:
-#    key: "yourKey"
+  #weather:
+  #  api:
+  #    key: "yourKey"
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: YOUR_GOOGLE_CLIENT_ID
+            client-secret: YOUR_GOOGLE_CLIENT_SECRET
+            redirect-uri: https://developers.google.com/oauthplayground
+
 scheduler:
   cacheCron: 0 */5 * * * *
   emailCron: 0 0 9 ? * SUN
