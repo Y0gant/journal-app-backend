@@ -2,17 +2,22 @@ package com.yogant.journal.service;
 
 import com.yogant.journal.entity.JournalEntry;
 import com.yogant.journal.entity.User;
+import com.yogant.journal.model.LoginDTO;
 import com.yogant.journal.model.SaveNewUserDTO;
 import com.yogant.journal.repository.JournalEntryRepo;
 import com.yogant.journal.repository.UserRepo;
+import com.yogant.journal.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Component
@@ -20,12 +25,13 @@ import java.util.Optional;
 public class UserService {
     private final UserRepo repo;
     private final JournalEntryRepo journalEntryRepo;
+    private final JwtUtils jwtUtils;
     private final PasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public UserService(UserRepo userRepo, JournalEntryRepo journalEntryRepo) {
+    public UserService(UserRepo userRepo, JournalEntryRepo journalEntryRepo, JwtUtils jwtUtils) {
         this.repo = userRepo;
         this.journalEntryRepo = journalEntryRepo;
-
+        this.jwtUtils = jwtUtils;
     }
 
     @Transactional
@@ -203,4 +209,17 @@ public class UserService {
             throw new RuntimeException("Failed to save admin user", e);
         }
     }
+
+    public String generateJwtForLogin (LoginDTO loginUser){
+        User user = repo.findByUserName(loginUser.getUserName());
+        if (user == null) {
+            throw new UsernameNotFoundException("User not found: " + loginUser.getUserName());
+        }
+        Map<String ,Object> claims = new HashMap<>();
+        claims.put("email",user.getEmail());
+        claims.put("sentiment_analysis",user.isSentimentAnalysis());
+        claims.put("roles",user.getRoles());
+        return jwtUtils.generateToken(user.getUserName(),claims);
+    }
+
 }

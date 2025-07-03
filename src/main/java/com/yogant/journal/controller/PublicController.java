@@ -4,17 +4,14 @@ import com.yogant.journal.entity.User;
 import com.yogant.journal.entity.Weather;
 import com.yogant.journal.model.LoginDTO;
 import com.yogant.journal.model.SaveNewUserDTO;
-import com.yogant.journal.service.UserDetailServiceImpl;
 import com.yogant.journal.service.UserService;
 import com.yogant.journal.service.WeatherService;
-import com.yogant.journal.utils.JwtUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -28,8 +25,6 @@ public class PublicController {
     private final UserService userService;
     private final WeatherService weatherService;
     private final AuthenticationManager authenticationManager;
-    private UserDetailServiceImpl userDetailService;
-    private JwtUtils jwtUtils;
 
     @PostMapping("/signup")
     public ResponseEntity<User> signUp(@RequestBody SaveNewUserDTO user) {
@@ -52,8 +47,7 @@ public class PublicController {
             log.info("Trying to login..");
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getUserName(), user.getPassword()));
             log.info("user authenticated generating jwt token");
-            UserDetails userDetails = userDetailService.loadUserByUsername(user.getUserName());
-            String token = jwtUtils.generateToken(userDetails.getUsername());
+            String token = userService.generateJwtForLogin(user);
             return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
             log.warn("Unable to authenticate user with user name {} {}", user.getUserName(), e.getMessage(), e);
@@ -62,7 +56,6 @@ public class PublicController {
 
         }
         return ResponseEntity.badRequest().build();
-
     }
 
 

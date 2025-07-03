@@ -53,7 +53,9 @@ spring:
             client-id: ${YOUR_GOOGLE_CLIENT_ID}
             client-secret: ${YOUR_GOOGLE_CLIENT_SECRET}
             redirect-uri: ${OAUTH_REDIRECT_URI}
-
+  jwt:
+    secret-key: ${JWT_SECRET_KEY}
+    expiration-ms: 900000 # 15 minutes
 scheduler:
   cacheCron: 0 */5 * * * *
   emailCron: 0 0 9 ? * SUN
