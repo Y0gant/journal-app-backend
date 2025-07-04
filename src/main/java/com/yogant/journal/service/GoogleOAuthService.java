@@ -84,16 +84,16 @@ public class GoogleOAuthService {
             String picture = (String) userInfo.get("picture");
 
             // STEP 3: Check or create user in DB
-            UserDetails userDetails ;
-            Map<String ,Object> claims = new HashMap<>();
+            UserDetails userDetails;
+            Map<String, Object> claims = new HashMap<>();
             try {
-              userDetails = userDetailsService.loadUserByUsername(name);
-              if (userDetails!=null) {
-                  User byUserName = userRepository.findByUserName(userDetails.getUsername());
-                  claims.put("email",byUserName.getEmail());
-                  claims.put("sentiment_analysis",byUserName.isSentimentAnalysis());
-                  claims.put("roles",byUserName.getRoles());
-              }
+                userDetails = userDetailsService.loadUserByUsername(name);
+                if (userDetails != null) {
+                    User byUserName = userRepository.findByUserName(userDetails.getUsername());
+                    claims.put("email", byUserName.getEmail());
+                    claims.put("sentiment_analysis", byUserName.isSentimentAnalysis());
+                    claims.put("roles", byUserName.getRoles());
+                }
             } catch (Exception e) {
                 User newUser = new User();
                 newUser.setEmail(email);
@@ -101,13 +101,13 @@ public class GoogleOAuthService {
                 newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
                 newUser.setRoles(Collections.singletonList("USER"));
                 User saved = userRepository.save(newUser);
-                claims.put("email",saved.getEmail());
-                claims.put("sentiment_analysis",saved.isSentimentAnalysis());
-                claims.put("roles",saved.getRoles());
+                claims.put("email", saved.getEmail());
+                claims.put("sentiment_analysis", saved.isSentimentAnalysis());
+                claims.put("roles", saved.getRoles());
             }
 
             // STEP 4: Generate JWT
-            String jwtToken = jwtUtil.generateToken(name,claims);
+            String jwtToken = jwtUtil.generateToken(name, claims);
 
             return new GoogleAuthResponseDTO(jwtToken, email, name, picture);
 

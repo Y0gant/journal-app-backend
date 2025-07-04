@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Slf4j
 @RestController
@@ -51,4 +53,31 @@ public class AdminController {
         else return ResponseEntity.badRequest().body(saved);
     }
 
+    @PostMapping("/{userName}/roles/admin")
+    public ResponseEntity<?> grantAdmin(@PathVariable String userName) {
+        log.info("Received request to grant ADMIN to user: {}", userName);
+        try {
+            Optional<User> userOpt = userService.grantAdminPrivilege(userName);
+            return userOpt.map(user -> ResponseEntity.ok().body(user))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            log.error("Error while granting ADMIN to user [{}]: {}", userName, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+    
+    @DeleteMapping("/{userName}/roles/admin")
+    public ResponseEntity<?> revokeAdmin(@PathVariable String userName) {
+        log.info("Received request to revoke ADMIN from user: {}", userName);
+        try {
+            Optional<User> userOpt = userService.revokeAdminPrivilege(userName);
+            return userOpt.map(user -> ResponseEntity.ok().body(user))
+                    .orElseGet(() -> ResponseEntity.notFound().build());
+        } catch (RuntimeException e) {
+            log.error("Error while revoking ADMIN from user [{}]: {}", userName, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
 }

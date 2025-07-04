@@ -107,7 +107,7 @@ public class UserService {
     }
 
     @Transactional
-    public Optional<User> updateUser(String userName, User userToUpdate) {
+    public Optional<User> updateUser(String userName, SaveNewUserDTO userToUpdate) {
         log.info("Initiating update for user [{}]", userName);
 
         try {
@@ -170,10 +170,7 @@ public class UserService {
                 return false;
             }
             User user = userOpt.get();
-            List<String> journalEntryIds = user.getJournalEntries()
-                    .stream()
-                    .map(JournalEntry::getId)
-                    .toList();
+            List<String> journalEntryIds = user.getJournalEntries().stream().map(JournalEntry::getId).toList();
             if (!journalEntryIds.isEmpty()) {
                 log.debug("Deleting {} journal entries for user [{}]", journalEntryIds.size(), userName);
                 journalEntryRepo.deleteAllById(journalEntryIds);
@@ -210,16 +207,86 @@ public class UserService {
         }
     }
 
-    public String generateJwtForLogin (LoginDTO loginUser){
+    public Optional<User> grantAdminPrivilege(String userName) {
+        log.info("Attempting to grant admin privileges to user with username: {}", userName);
+        try {
+            User user = repo.findByUserName(userName);
+            if (user == null || user.getRoles() == null) {
+                throw new IllegalStateException("User or roles not found");
+            }
+
+            List<String> roles = user.getRoles();
+            boolean hasAdmin = roles.stream().anyMatch(role -> role.equalsIgnoreCase("ADMIN"));
+
+            if (hasAdmin) {
+                log.info("User [{}] already has ADMIN privileges. No changes made.", userName);
+                return Optional.of(user);
+            }
+
+            roles.add("ADMIN");
+            repo.save(user);
+            log.info("ADMIN role successfully granted to user [{}]", userName);
+            return Optional.of(user);
+
+        } catch (UsernameNotFoundException e) {
+            log.warn("User not found [{}]: {}", userName, e.getMessage());
+            throw new RuntimeException("User not found: " + userName, e);
+
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Data integrity violation while granting ADMIN to [{}]: {}", userName, e.getMessage());
+            throw new RuntimeException("Data integrity violation while granting admin", e);
+
+        } catch (Exception e) {
+            log.error("Unexpected error while granting admin to [{}]: {}", userName, e.getMessage(), e);
+            throw new RuntimeException("Failed to grant admin role", e);
+        }
+    }
+
+    public Optional<User> revokeAdminPrivilege(String userName) {
+        log.info("Attempting to revoke admin privileges for user: {}", userName);
+        try {
+            User user = repo.findByUserName(userName);
+            if (user == null || user.getRoles() == null) {
+                throw new IllegalStateException("User or roles not found");
+            }
+
+            List<String> roles = user.getRoles();
+            boolean isAdmin = roles.stream().anyMatch(role -> role.equalsIgnoreCase("ADMIN"));
+
+            if (!isAdmin) {
+                log.info("User [{}] does not have ADMIN privileges. No changes made.", userName);
+                return Optional.of(user);
+            }
+
+            roles.removeIf(role -> role != null && role.equalsIgnoreCase("ADMIN"));
+            repo.save(user);
+            log.info("ADMIN role successfully revoked for user [{}]", userName);
+            return Optional.of(user);
+
+        } catch (UsernameNotFoundException e) {
+            log.warn("User not found [{}]: {}", userName, e.getMessage());
+            throw new RuntimeException("User not found: " + userName, e);
+
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Data integrity violation while revoking ADMIN for [{}]: {}", userName, e.getMessage());
+            throw new RuntimeException("Data integrity violation while revoking admin", e);
+
+        } catch (Exception e) {
+            log.error("Unexpected error while revoking admin from [{}]: {}", userName, e.getMessage(), e);
+            throw new RuntimeException("Failed to revoke admin role", e);
+        }
+    }
+
+    public String generateJwtForLogin(LoginDTO loginUser) {
         User user = repo.findByUserName(loginUser.getUserName());
         if (user == null) {
             throw new UsernameNotFoundException("User not found: " + loginUser.getUserName());
         }
-        Map<String ,Object> claims = new HashMap<>();
-        claims.put("email",user.getEmail());
-        claims.put("sentiment_analysis",user.isSentimentAnalysis());
-        claims.put("roles",user.getRoles());
-        return jwtUtils.generateToken(user.getUserName(),claims);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("email", user.getEmail());
+        claims.put("sentiment_analysis", user.isSentimentAnalysis());
+        claims.put("roles", user.getRoles());
+        return jwtUtils.generateToken(user.getUserName(), claims);
     }
 
 }

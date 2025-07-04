@@ -60,7 +60,7 @@ class UserServiceTest {
         existing.setUserName("old");
         existing.setPassword("oldpass");
 
-        User update = new User();
+        SaveNewUserDTO update = new SaveNewUserDTO();
         update.setUserName("new");
         update.setPassword("newpass");
 

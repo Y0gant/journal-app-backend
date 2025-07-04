@@ -1,6 +1,7 @@
 package com.yogant.journal.controller;
 
 import com.yogant.journal.entity.User;
+import com.yogant.journal.model.SaveNewUserDTO;
 import com.yogant.journal.service.UserService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +34,7 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
+    public ResponseEntity<User> updateUser(@RequestBody SaveNewUserDTO user) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String userName = authentication.getName();
         return userService.updateUser(userName, user)
